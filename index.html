@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RAT Monitor</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        #menu {
+            background-color: #222;
+            padding: 10px;
+            border-bottom: 2px solid red;
+        }
+
+        #menu a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+
+        #screen-viewer {
+            width: 100%;
+            height: 500px;
+            background-color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #device-info {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <a href="#">Layar</a>
+        <a href="#">File Manager</a>
+        <a href="#">Kontrol</a>
+    </div>
+
+    <div id="screen-viewer">
+        <span>Menunggu Layar...</span>
+        <!-- Video stream akan ditampilkan di sini -->
+        <video id="remote-screen" width="640" height="480" autoplay playsinline></video>
+    </div>
+
+    <div id="device-info">
+        <h2>Informasi Device</h2>
+        <p id="device-name">Nama: </p>
+        <p id="device-platform">Platform: </p>
+        <p id="device-version">Versi: </p>
+    </div>
+
+    <script>
+        // Inisialisasi WebSockets
+        const socket = new WebSocket('ws://localhost:8080'); // Ganti dengan URL server WebSocket Anda
+
+        socket.onopen = () => {
+            console.log('Terhubung ke server WebSocket');
+        };
+
+        socket.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            if (message.type === 'deviceInfo') {
+                document.getElementById('device-name').textContent = 'Nama: ' + message.deviceName;
+                document.getElementById('device-platform').textContent = 'Platform: ' + message.platform;
+                document.getElementById('device-version').textContent = 'Versi: ' + message.version;
+            } else if (message.type === 'screenStream') {
+                // Terima data stream layar dari server dan tampilkan di video element
+                const video = document.getElementById('remote-screen');
+                video.srcObject = message.stream; // Asumsi server mengirimkan stream
+            }
+        };
+
+        socket.onclose = () => {
+            console.log('Koneksi WebSocket ditutup');
+        };
+
+        socket.onerror = (error) => {
+            console.error('Error WebSocket:', error);
+        };
+
+        // Fungsi untuk meminta informasi device
+        function requestDeviceInfo() {
+            socket.send(JSON.stringify({ type: 'requestDeviceInfo' }));
+        }
+
+        // Panggil fungsi requestDeviceInfo saat halaman dimuat
+        window.onload = requestDeviceInfo;
+
+        // WebRTC (Screen Sharing)
+        // Kode untuk mendapatkan screen stream dan mengirimkannya ke server
+        // Akan sangat kompleks dan memerlukan server yang menangani WebRTC signaling
+
+        // API Device (Akses Device)
+        // Kode untuk mengakses fitur-fitur device (memerlukan framework seperti Cordova atau NativeScript)
+        // Akan sangat kompleks dan memerlukan izin dari user
+    </script>
+</body>
+</html>
